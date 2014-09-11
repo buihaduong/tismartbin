@@ -25,11 +25,18 @@
     var bin_yellow = 'images/bin_yellow.png';
     var office_icon = 'images/office.png';
 
+    var startPoint = new google.maps.LatLng(16.451407, 107.5899106);
+    var directionsDisplay;
+    var directionsService = new google.maps.DirectionsService();
     var map;
+
     var listMarker = [];
     var listPos = [];
 
     function initialize() {
+        directionsDisplay = new google.maps.DirectionsRenderer({
+            suppressMarkers: true
+        });
         var hue = new google.maps.LatLng(16.4534777, 107.5769233);
         var mapOptions = {
             center: hue,
@@ -38,7 +45,7 @@
         };
         map = new google.maps.Map(document.getElementById("map-canvas"),
             mapOptions);
-        var startPoint = new google.maps.LatLng(16.451407, 107.5899106);
+        directionsDisplay.setMap(map);
         var startMarker = new google.maps.Marker({
             position: startPoint,
             map: map,
@@ -57,6 +64,42 @@
             return bin_yellow
         else
             return bin_red
+    }
+
+    function calcRoute() {
+        var waypts = [];
+        for (var point in listPos) {
+            if (listPos.hasOwnProperty(point)) {
+                var data = listPos[point];
+                if (data.trash >= 70) {
+                    waypts.push({
+                        location: new google.maps.LatLng(data.lat, data.long),
+                        stopover: true
+                    });
+                }
+            }
+        }
+
+        if (waypts.length <= 0) {
+            directionsDisplay.setMap(null);
+            return;
+        }
+
+        directionsDisplay.setMap(map);
+
+        var request = {
+            origin: startPoint,
+            destination: startPoint,
+            waypoints: waypts,
+            optimizeWaypoints: true,
+            travelMode: google.maps.TravelMode.DRIVING
+        };
+
+        directionsService.route(request, function(response, status) {
+            if (status == google.maps.DirectionsStatus.OK) {
+                directionsDisplay.setDirections(response);
+            }
+        });
     }
 
     function createMarker(data) {
@@ -89,6 +132,8 @@
         var data = snapshot.val();
         listPos[data.name] = data;
         listMarker[data.name] = createMarker(data);
+
+        calcRoute();
     });
 
     myDataRef.on('child_changed', function(snapshot) {
@@ -106,6 +151,7 @@
             listMarker[data.name] = createMarker(data);
         }
 
+        calcRoute();
     });
     </script>
 </head>
