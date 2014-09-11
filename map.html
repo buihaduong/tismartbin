@@ -12,6 +12,11 @@
       src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBxqIv2x3CwElxQH_tnL_qNE-yUaKWfgiw">
     </script>
     <script type="text/javascript">
+      
+      var bin_red = 'images/bin_red.png';
+      var bin_green = 'images/bin_green.png';
+      var bin_yellow = 'images/bin_yellow.png';
+      
       var map;
       var listMarker = [];
       var listPos = [];
@@ -27,19 +32,30 @@
       google.maps.event.addDomListener(window, 'load', initialize);
     </script>
     <script>
-		var myDataRef = new Firebase('https://incandescent-fire-7887.firebaseio.com/');
-		myDataRef.on('child_added', function(snapshot){
-			// alert('adding');
-			var data = snapshot.val();
-			listPos[data.name] = data;
 
-			var newPoint = new google.maps.LatLng(data.lat, data.long);
+    	function getIcon(trash)
+    	{
+    		if (trash < 30)
+    			return bin_green
+    		if (trash < 70)
+    			return bin_yellow
+    		else
+    			return bin_red
+    	}
+
+    	function createMarker(data)
+    	{
+
+    		var newPoint = new google.maps.LatLng(data.lat, data.long);
+			
+			var icon_image = getIcon(data.trash)
+
 			var marker = new google.maps.Marker({
 				position: newPoint,
 				map: map,
-				title: data.name
+				title: data.name,
+				icon: icon_image
 			});
-			listMarker[data.name] = marker;
 
 			var infowindow = new google.maps.InfoWindow({
 				content: '<div id=\'content\'>' + data.trash + '</div>'
@@ -47,11 +63,21 @@
 			google.maps.event.addListener(marker, 'click', function() {
 				infowindow.open(map,marker);
 			});
+
+			return marker;
+    	}
+
+		var myDataRef = new Firebase('https://incandescent-fire-7887.firebaseio.com/');
+		myDataRef.on('child_added', function(snapshot){
+			// alert('adding');
+			var data = snapshot.val();
+			listPos[data.name] = data;
+			listMarker[data.name] = createMarker(data);
 		});
 
 		myDataRef.on('child_changed', function(snapshot){
 			var data = snapshot.val();
-			alert(data.trash);
+			// alert(data.trash);
 			var pos = listPos[data.name];
 			var marker = listMarker[data.name];
 
@@ -62,23 +88,7 @@
 			{
 				marker.setMap(null)
 				marker = null;
-
-				var newPoint = new google.maps.LatLng(data.lat, data.long);
-				marker = new google.maps.Marker({
-					position: newPoint,
-					map: map,
-					title: data.name
-				});
-
-				var infowindow = new google.maps.InfoWindow({
-					content: '<div id=\'content\'>' + data.trash + '</div>'
-				});
-				
-				google.maps.event.addListener(marker, 'click', function() {
-					infowindow.open(map,marker);
-				});
-
-				listMarker[data.name] = marker;
+				listMarker[data.name] = createMarker(data);
 			}
 				
 		});
