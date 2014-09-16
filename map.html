@@ -33,6 +33,12 @@
     var listMarker = [];
     var listPos = [];
 
+    var car;
+    var route;
+    var points;
+
+    var tick = 1000;
+
     function initialize() {
         directionsDisplay = new google.maps.DirectionsRenderer({
             suppressMarkers: true
@@ -53,10 +59,42 @@
             animation: google.maps.Animation.DROP,
             icon: office_icon
         });
+
+        car = new google.maps.Marker({
+            position: startPoint,
+            map: map,
+            animation: google.maps.Animation.DROP
+        });
+
+        google.maps.event.addListener(car, 'click', function() {
+            start_car();
+        });
     }
     google.maps.event.addDomListener(window, 'load', initialize);
     </script>
     <script>
+    function move_car(pos) {
+        if (pos == points.length) {
+            google.maps.event.addListener(car, 'click', function() {
+                start_car();
+            });
+            return;
+        }
+
+        car.setPosition(points[pos]);
+        pos = pos + 1;
+        console.log('moving' + pos);
+        setTimeout("move_car(" + pos + ")", tick);
+    }
+
+    function start_car() {
+        google.maps.event.clearInstanceListeners(car);
+        points = getPointOnRoute(route);
+        console.log(points);
+        console.log(route);
+        setTimeout("move_car(0)", tick);
+    }
+
     function getIcon(trash) {
         if (trash < 30)
             return bin_green
@@ -88,7 +126,7 @@
         directionsDisplay.setMap(map);
 
         var request = {
-            origin: startPoint,
+            origin: car.getPosition(),
             destination: startPoint,
             waypoints: waypts,
             optimizeWaypoints: true,
@@ -98,6 +136,7 @@
         directionsService.route(request, function(response, status) {
             if (status == google.maps.DirectionsStatus.OK) {
                 directionsDisplay.setDirections(response);
+                route = response;
             }
         });
     }
@@ -124,6 +163,21 @@
         });
 
         return marker;
+    }
+
+    function getPointOnRoute(route_data) {
+        var points = [];
+        var legs = route_data.routes[0].legs;
+        for (i = 0; i < legs.length; i++) {
+            var steps = legs[i].steps;
+            for (j = 0; j < steps.length; j++) {
+                var nextSegment = steps[j].path;
+                for (k = 0; k < nextSegment.length; k++) {
+                    points.push(nextSegment[k]);
+                }
+            }
+        }
+        return points;
     }
 
     var myDataRef = new Firebase('https://incandescent-fire-7887.firebaseio.com/');
