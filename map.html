@@ -24,6 +24,7 @@
     var bin_green = 'images/bin_green.png';
     var bin_yellow = 'images/bin_yellow.png';
     var office_icon = 'images/office.png';
+    var car_icon = 'images/car.png';
 
     var startPoint = new google.maps.LatLng(16.451407, 107.5899106);
     var directionsDisplay;
@@ -63,7 +64,8 @@
         car = new google.maps.Marker({
             position: startPoint,
             map: map,
-            animation: google.maps.Animation.DROP
+            animation: google.maps.Animation.DROP,
+            icon: car_icon
         });
 
         google.maps.event.addListener(car, 'click', function() {
