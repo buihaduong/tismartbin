@@ -115,13 +115,12 @@
         // setTimeout("move_car(0)", tick);
     }
 
-    function reset_car()
-    {
+    function reset_car() {
         points = getPointOnRoute(route);
         car_pos = 0;
     }
 
-    function stop_car(){
+    function stop_car() {
         car_status = 0;
     }
 
@@ -208,7 +207,10 @@
             for (j = 0; j < steps.length; j++) {
                 var nextSegment = steps[j].path;
                 for (k = 0; k < nextSegment.length; k++) {
-                    var data = {point:null, isEndPoint:null};
+                    var data = {
+                        point: null,
+                        isEndPoint: null
+                    };
                     data.point = nextSegment[k];
                     data.isEndPoint = false;
                     if (k == nextSegment.length - 1)
