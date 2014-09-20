@@ -40,9 +40,15 @@
 
     var tick = 1000;
 
+    var car_status = 0;
+    var car_pos = 0;
+
+    var myDataRef = new Firebase('https://incandescent-fire-7887.firebaseio.com/');
+
     function initialize() {
         directionsDisplay = new google.maps.DirectionsRenderer({
-            suppressMarkers: true
+            suppressMarkers: true,
+            preserveViewport: true
         });
         var hue = new google.maps.LatLng(16.4534777, 107.5769233);
         var mapOptions = {
@@ -69,32 +75,54 @@
         });
 
         google.maps.event.addListener(car, 'click', function() {
-            start_car();
+            if (car_status)
+                stop_car();
+            else
+                start_car();
         });
     }
     google.maps.event.addDomListener(window, 'load', initialize);
     </script>
     <script>
-    function move_car(pos) {
-        if (pos == points.length) {
-            google.maps.event.addListener(car, 'click', function() {
-                start_car();
-            });
-            return;
-        }
+    setInterval("move_car()", tick);
 
-        car.setPosition(points[pos]);
-        pos = pos + 1;
-        console.log('moving' + pos);
-        setTimeout("move_car(" + pos + ")", tick);
+    function move_car() {
+        // // if (pos == points.length) {
+        // //     google.maps.event.addListener(car, 'click', function() {
+        // //         start_car();
+        // //     });
+        // //     return;
+        // // }
+
+        // car.setPosition(points[pos].point);
+        // pos = pos + 1;
+        // // console.log('moving' + pos);
+        // setTimeout("move_car(" + pos + ")", tick);
+        if (!car_status)
+            return;
+
+        car.setPosition(points[car_pos].point);
+        car_pos = (car_pos + 1) % points.length;
+
+        console.log('moving_car');
     }
 
     function start_car() {
-        google.maps.event.clearInstanceListeners(car);
+        // google.maps.event.clearInstanceListeners(car);
+        car_status = 1;
+        // console.log(points);
+        // console.log(route);
+        // setTimeout("move_car(0)", tick);
+    }
+
+    function reset_car()
+    {
         points = getPointOnRoute(route);
-        console.log(points);
-        console.log(route);
-        setTimeout("move_car(0)", tick);
+        car_pos = 0;
+    }
+
+    function stop_car(){
+        car_status = 0;
     }
 
     function getIcon(trash) {
@@ -120,10 +148,10 @@
             }
         }
 
-        if (waypts.length <= 0) {
-            directionsDisplay.setMap(null);
-            return;
-        }
+        // if (waypts.length <= 0) {
+        //     directionsDisplay.setMap(null);
+        //     return;
+        // }
 
         directionsDisplay.setMap(map);
 
@@ -139,6 +167,11 @@
             if (status == google.maps.DirectionsStatus.OK) {
                 directionsDisplay.setDirections(response);
                 route = response;
+
+                var current_car_status = car_status;
+                stop_car();
+                reset_car();
+                car_status = current_car_status;
             }
         });
     }
@@ -175,14 +208,18 @@
             for (j = 0; j < steps.length; j++) {
                 var nextSegment = steps[j].path;
                 for (k = 0; k < nextSegment.length; k++) {
-                    points.push(nextSegment[k]);
+                    var data = {point:null, isEndPoint:null};
+                    data.point = nextSegment[k];
+                    data.isEndPoint = false;
+                    if (k == nextSegment.length - 1)
+                        data.isEndPoint = true;
+                    points.push(data);
                 }
             }
         }
         return points;
     }
 
-    var myDataRef = new Firebase('https://incandescent-fire-7887.firebaseio.com/');
     myDataRef.on('child_added', function(snapshot) {
         // alert('adding');
         var data = snapshot.val();
