@@ -42,7 +42,7 @@ def updateData(data):
 #Function for handling connections. This will be used to create threads
 def clientthread(conn, addr):
     #Sending message to connected client
-    conn.send('Welcome to the server. Type something and hit enter\n') #send only takes string
+    #conn.send('Welcome to the server. Type something and hit enter\n') #send only takes string
      
     #infinite loop so that function do not terminate and thread do not end.
     while True:
@@ -55,6 +55,7 @@ def clientthread(conn, addr):
             break
         if data == 'exit\r\n':
         	break
+        print '[RECV]' + addr[0] + ':' + str(addr[1]) + ':' + data
         updateData(data)
      
         conn.sendall(reply)
