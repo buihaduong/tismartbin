@@ -23,6 +23,7 @@
     var bin_red = 'images/bin_red.png';
     var bin_green = 'images/bin_green.png';
     var bin_yellow = 'images/bin_yellow.png';
+    var bin_fire = 'images/bin_fire.png';
     var office_icon = 'images/office.png';
     var car_icon = 'images/car.png';
 
@@ -124,10 +125,12 @@
         car_status = 0;
     }
 
-    function getIcon(trash) {
-        if (trash < 30)
+    function getIcon(data) {
+        if (data.temp > 70)
+            return bin_fire
+        if (data.trash < 30)
             return bin_green
-        if (trash < 70)
+        if (data.trash < 70)
             return bin_yellow
         else
             return bin_red
@@ -135,11 +138,19 @@
 
     function calcRoute() {
         var waypts = [];
+        var waypts_trash = [];
+        var waypts_fire = [];
         for (var point in listPos) {
             if (listPos.hasOwnProperty(point)) {
                 var data = listPos[point];
                 if (data.trash >= 70) {
-                    waypts.push({
+                    waypts_trash.push({
+                        location: new google.maps.LatLng(data.lat, data.long),
+                        stopover: true
+                    });
+                }
+                if (data.temp >= 70) {
+                     waypts_fire.push({
                         location: new google.maps.LatLng(data.lat, data.long),
                         stopover: true
                     });
@@ -147,6 +158,9 @@
             }
         }
 
+        waypts = waypts_trash
+        if (waypts_fire.length > 0) 
+            waypts = waypts_fire
         // if (waypts.length <= 0) {
         //     directionsDisplay.setMap(null);
         //     return;
@@ -179,7 +193,7 @@
 
         var newPoint = new google.maps.LatLng(data.lat, data.long);
 
-        var icon_image = getIcon(data.trash)
+        var icon_image = getIcon(data)
 
         var marker = new google.maps.Marker({
             position: newPoint,
