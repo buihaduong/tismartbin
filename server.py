@@ -30,13 +30,22 @@ print 'Socket bind complete'
 s.listen(10)
 print 'Socket now listening'
 
+def RepresentsInt(s):
+    try: 
+        int(s)
+        return True
+    except ValueError:
+        return False
+
 def updateData(data):
     global r
     new_data = r.json()
+    if not RepresentsInt(data[1:]):
+        return
     if data[0] == 'n':
-        new_data['temp'] = float(data[1:])
+        new_data['temp'] = int(data[1:])
     if data[0] == 'r':
-        new_data['trash'] = float(data[1:])
+        new_data['trash'] = int(data[1:])
     r = requests.put(DATA_URL, data=json.dumps(new_data))
 
 #Function for handling connections. This will be used to create threads
