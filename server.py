@@ -11,8 +11,6 @@ LOCATION = 'location1'
 BASE_URL = 'https://incandescent-fire-7887.firebaseio.com/'
 DATA_URL = BASE_URL + LOCATION + '.json'
 
-r = requests.get(DATA_URL) 
-
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 print 'Socket created'
@@ -38,7 +36,7 @@ def RepresentsInt(s):
         return False
 
 def updateData(data):
-    global r
+    r = requests.get(DATA_URL) 
     new_data = r.json()
     if not RepresentsInt(data[1:]):
         return
